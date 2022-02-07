@@ -1,7 +1,7 @@
 const jsonwebtoken = require('jsonwebtoken');
 
 const createJwt = ({ _id, firstName, lastName }) => {
-  return jwt.sign(
+  return jsonwebtoken.sign(
     {
       id: _id,
       firstName,
