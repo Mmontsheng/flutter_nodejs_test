@@ -1,0 +1,15 @@
+version: '3'
+services:
+  api:
+    container_name: weight-api
+    restart: always
+    build: ./api
+    ports:
+      - '8000:8000'
+    external_links:
+      - mongo
+  mongo:
+    image: mongo:5.0.6
+    container_name: weights-db
+    ports:
+      - '27017:27017'

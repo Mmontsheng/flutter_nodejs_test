@@ -15,6 +15,7 @@ const create = async (data, userId) => {
   await new Weight({
     value: data.value,
     user_id: userId,
+    date: Date.now(),
     _id: uuid.v4(),
   }).save();
 
