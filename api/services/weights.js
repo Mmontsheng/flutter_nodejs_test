@@ -9,10 +9,10 @@ const parseDate = (data) => {
   } else {
     date = new Date(data.date);
   }
-  return `${date.toDateString()}, ${date.getHours()}:${date.getMinutes()}`;
+  return `${date.toDateString()}, ${date.toLocaleTimeString()}`;
 };
 const create = async (data, userId) => {
-  await new Weight({
+  const newWeight = await new Weight({
     value: data.value,
     user_id: userId,
     date: Date.now(),
@@ -22,7 +22,12 @@ const create = async (data, userId) => {
   try {
     return {
       message: 'Created successfuly',
-      status: 200,
+      result: {
+        id: newWeight._id,
+        date: parseDate(newWeight),
+        value: newWeight.value,
+      },
+      status: 201,
     };
   } catch (error) {
     return {
@@ -34,7 +39,7 @@ const create = async (data, userId) => {
 
 const update = async (id, value, userId) => {
   try {
-    const updated = await Weight.updateOne(
+    let updated = await Weight.updateOne(
       { _id: id, user_id: userId },
       { value: value, updated: Date.now() }
     );
@@ -44,8 +49,14 @@ const update = async (id, value, userId) => {
         status: 400,
       };
     }
+    updated = await Weight.findOne({ _id: id });
     return {
       message: 'Updated successfuly.',
+      result: {
+        id: updated.id,
+        date: parseDate(updated),
+        value: updated.value,
+      },
       status: 200,
     };
   } catch (error) {

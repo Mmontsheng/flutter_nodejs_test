@@ -1,6 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const express = require('express');
+const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 8000;
 
 const authentication = require('./routes/authentication');
@@ -8,6 +9,10 @@ const weights = require('./routes/weights');
 
 const app = express();
 app.use(express.json());
+// app.use(bodyParser.urlencoded({
+//   extended: true
+// }));
+// app.use(bodyParser.json());
 
 app.use('/', authentication);
 app.use('/', weights);
