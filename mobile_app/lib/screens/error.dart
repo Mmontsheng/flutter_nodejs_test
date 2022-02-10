@@ -15,7 +15,6 @@ class ErrorScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/error.png', width: 250, height: 250),
               const Text('We\'re sorry',
                   style: TextStyle(color: AppColors.primary, fontSize: 25)),
               const SizedBox(height: 10),
@@ -25,17 +24,7 @@ class ErrorScreen extends StatelessWidget {
               Container(
                 width: MediaQuery.of(context).size.width - 40,
                 padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: Text('Go back'),
-                // child: PrimaryButton(
-                //   onPressed: () {
-                //     final user = FirebaseAuth.instance.currentUser;
-
-                //     Navigator.of(context)
-                //         .pushReplacementNamed(user != null ? '/' : '/welcome');
-                //   },
-                //   isLoading: false,
-                //   text: 'Go Back',
-                // ),
+                child: const Text('Go back'),
               ),
             ],
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/theme/colors.dart';
-import 'package:mobile_app/widgets/loading_Icon.dart';
+import 'package:mobile_app/widgets/loading_icon.dart';
 
 class PrimaryButton extends StatefulWidget {
   final bool isLoading;

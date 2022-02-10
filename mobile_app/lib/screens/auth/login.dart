@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/models/authentication/login.dart';
 import 'package:mobile_app/services/authentication.dart';
+import 'package:mobile_app/services/bearer_token.dart';
 import 'package:mobile_app/theme/colors.dart';
 import 'package:mobile_app/widgets/buttons/primary.dart';
 import 'package:mobile_app/widgets/no_glow_behaviour.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -17,10 +19,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final passwordInputController = TextEditingController();
   final usernameInputController = TextEditingController();
+
   bool isPasswordVisible = false;
-  String message = '';
   bool isLoading = false;
-  late AuthenticationService service;
+  String message = '';
+
   @override
   void dispose() {
     super.dispose();
@@ -29,13 +32,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    initServices();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final bearerTokenService = Provider.of<BearerTokenService>(context);
+    final authenticationService = Provider.of<AuthenticationService>(context);
+
     return SafeArea(
       child: Scaffold(
         body: ScrollConfiguration(
@@ -179,17 +179,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                   isLoading = true;
                                   message = "";
                                 });
-                                String? response = await service.login(
-                                    usernameInputController.text,
-                                    passwordInputController.text);
-                                if (response != null && response.isNotEmpty) {
+                                Map<String, String> body = {
+                                  "username": usernameInputController.text,
+                                  "password": passwordInputController.text,
+                                };
+                                LoginResponse response =
+                                    await authenticationService.login(body);
+                                if (response.status != 200) {
                                   setState(() {
                                     isLoading = false;
-                                    message = response;
+                                    message = response.message!;
                                   });
                                 } else {
-                                  Navigator.of(context)
-                                      .pushReplacementNamed('/');
+                                  bearerTokenService.save(response.result);
+
+                                  Navigator.pushNamedAndRemoveUntil(context,
+                                      "/", (Route<dynamic> route) => false);
                                 }
                               },
                               isLoading: isLoading,
@@ -233,10 +238,5 @@ class _LoginScreenState extends State<LoginScreen> {
             )),
       ),
     );
-  }
-
-  initServices() async {
-    SharedPreferences localStorage = await SharedPreferences.getInstance();
-    service = AuthenticationService(localStorage: localStorage);
   }
 }

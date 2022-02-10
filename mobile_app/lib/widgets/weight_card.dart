@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/models/weight.dart';
+import 'package:mobile_app/models/weight/weight.dart';
 import 'package:mobile_app/theme/colors.dart';
 import 'package:mobile_app/widgets/weight_dialog.dart';
 
 class WeightCard extends StatelessWidget {
-  final DismissDirectionCallback? onDismissed;
+  final Function(Weight) onDeleted;
 
   final Weight weight;
   const WeightCard({
     Key? key,
     required this.weight,
-    this.onDismissed,
+    required this.onDeleted,
   }) : super(key: key);
 
   @override
@@ -21,15 +21,16 @@ class WeightCard extends StatelessWidget {
           context: context,
           builder: (context) {
             return WeightDialog(
-                weight: weight,
-                onSave: (value, id) {
-                  Navigator.pop(context);
-                });
+              id: weight.id,
+              value: weight.value,
+            );
           },
         );
       },
       child: Dismissible(
-        onDismissed: onDismissed,
+        onDismissed: (direction) {
+          onDeleted(weight);
+        },
         key: Key(weight.id),
         child: Card(
           elevation: 5,
@@ -65,7 +66,7 @@ class WeightCard extends StatelessWidget {
                 const SizedBox(height: 15),
                 Text(weight.date,
                     style: const TextStyle(
-                        color: AppColors.grey,
+                        color: AppColors.lightGrey,
                         fontSize: 13,
                         fontWeight: FontWeight.w500)),
               ],

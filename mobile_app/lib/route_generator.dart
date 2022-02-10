@@ -7,8 +7,6 @@ import 'package:mobile_app/widgets/custom_page_route.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings setting) {
-    final args = setting.arguments;
-
     switch (setting.name) {
       case "/":
         return CustomPageRoute(builder: (_) => const HomeScreen());
@@ -17,11 +15,7 @@ class RouteGenerator {
       case "/register":
         return CustomPageRoute(builder: (_) => const RegisterScreen());
       default:
-        return errorRoute();
+        return CustomPageRoute(builder: (_) => const ErrorScreen());
     }
-  }
-
-  static Route<dynamic> errorRoute() {
-    return CustomPageRoute(builder: (_) => const ErrorScreen());
   }
 }

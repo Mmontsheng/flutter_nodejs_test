@@ -1,16 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:loading_indicator/loading_indicator.dart';
-import 'package:mobile_app/models/weight.dart';
-import 'package:mobile_app/services/authentication.dart';
-import 'package:mobile_app/services/weights.dart';
+import 'package:mobile_app/models/weight/weight.dart';
+import 'package:mobile_app/services/bearer_token.dart';
+import 'package:mobile_app/state/weight.dart';
 import 'package:mobile_app/theme/colors.dart';
-import 'package:mobile_app/widgets/loading_Icon.dart';
+import 'package:mobile_app/widgets/logout.dart';
 import 'package:mobile_app/widgets/no_glow_behaviour.dart';
 import 'package:mobile_app/widgets/weight_card.dart';
 import 'package:mobile_app/widgets/weight_dialog.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -20,21 +18,29 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late WeightService weightService;
-  bool isLoading = false;
-  List<Weight> weights = [];
-
   @override
   void initState() {
     super.initState();
-    initServices();
+    final provider = Provider.of<WeightProvider>(context, listen: false);
+    provider.loadAll();
   }
 
   @override
   Widget build(BuildContext context) {
+    final bearerTokenService = Provider.of<BearerTokenService>(context);
+
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
+          actions: [
+            LogoutButton(
+              onYes: () {
+                bearerTokenService.remove();
+                Navigator.pushNamedAndRemoveUntil(
+                    context, "/login", (Route<dynamic> route) => false);
+              },
+            )
+          ],
           backgroundColor: AppColors.backgroundColor,
           elevation: 0,
           title: Row(
@@ -45,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
-                      fontSize: 35),
+                      fontSize: 25),
                 ),
               ),
             ],
@@ -55,11 +61,11 @@ class _HomeScreenState extends State<HomeScreen> {
           behavior: NoGlowBehaviour(),
           child: Container(
             padding: const EdgeInsets.all(15),
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                if (isLoading) {
+            child: Consumer<WeightProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading) {
                   return const Center(child: CupertinoActivityIndicator());
-                } else if (weights.isEmpty && !isLoading) {
+                } else if (provider.weights.isEmpty && !provider.isLoading) {
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
@@ -79,16 +85,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
                 return ListView.builder(
                   shrinkWrap: true,
-                  itemCount: weights.length,
+                  itemCount: provider.weights.length,
                   itemBuilder: (context, index) {
-                    Weight weight = weights[index];
+                    Weight weight = provider.weights[index];
                     return WeightCard(
                       weight: weight,
-                      onDismissed: (direction) {
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
+                      onDeleted: (weight) async {
+                        await provider.remove(weight);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text(
-                            'Deleted',
+                            "Weight ${weight.value} deleted",
                           ),
                           backgroundColor: AppColors.primary,
                         ));
@@ -105,44 +111,14 @@ class _HomeScreenState extends State<HomeScreen> {
             showDialog(
               context: context,
               builder: (context) {
-                return WeightDialog(onSave: (value, id) {
-                  Navigator.pop(context);
-                });
+                return const WeightDialog();
               },
             );
-            // Add your onPressed code here!
           },
           backgroundColor: AppColors.primary,
           child: const Icon(Icons.add),
         ),
       ),
     );
-  }
-
-  void loadWeights() async {
-    http.Response response = await weightService.get();
-    if (response.statusCode != 200) {
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-    WeightReponse data = parseFromJson(response.body);
-    setState(() {
-      weights = data.result!;
-      weights.sort((a, b) => b.date.compareTo(a.date));
-      isLoading = false;
-    });
-  }
-
-  initServices() async {
-    setState(() {
-      isLoading = true;
-    });
-    SharedPreferences localStorage = await SharedPreferences.getInstance();
-    weightService = WeightService(
-        authenticationService:
-            AuthenticationService(localStorage: localStorage));
-    return loadWeights();
   }
 }
