@@ -1,3 +1,4 @@
 class Constants {
-  static String baseUrl = "https://a169-196-32-249-148.ngrok.io";
+  /// can use a tool like ngrok https://ngrok.com/ to tunnel to the localhost:8000
+  static String baseUrl = "http://localhost:8000";
 }
